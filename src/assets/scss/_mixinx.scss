@@ -1,0 +1,26 @@
+@import './_variables.scss';
+
+@mixin font-style($font-size, $font-weight, $color: $primary-color) {
+    font-size: $font-size;
+    font-weight: $font-weight;
+    line-height: $font-size + 5;
+    color: $color;
+}
+
+// _button-mixin.scss
+
+@mixin button($bg-color, $text-color, $hover-bg-color, $hover-text-color) {
+    background-color: $bg-color;
+    color: $text-color;
+    padding: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    
+    &:hover {
+      background-color: $hover-bg-color;
+      color: $hover-text-color;
+    }
+  }
+  

@@ -20,14 +20,8 @@
             const store = useStore();
             const score = computed(() => store.getters.getScore);
 
-            const incrementScore = () => {
-            const newScore = store.state.score + 1;
-            store.dispatch('setScore', newScore);
-            };
-
             return {
                 score,
-                incrementScore,
             };
         },
     }

@@ -8,6 +8,7 @@ const store = createStore({
     score: 0,
     data: {},
     selectedQuestion: {},
+    answer: [],
   },
   mutations: {
     // Mutation to update the score
@@ -16,7 +17,6 @@ const store = createStore({
       const stringWithoutDollarSign = stringWithDollarSign.replace(/\$/g, "");
       const numberValue = parseFloat(stringWithoutDollarSign);
 
-      console.log(numberValue);
       state.score += numberValue;
     },
     setData(state, newData) {
@@ -24,6 +24,9 @@ const store = createStore({
     },
     setSelectedQuestion(state, newData) {
       state.selectedQuestion = newData;
+    },
+    updateAnswer(state, newData) {
+      state.answer = [...state.answer, newData];
     },
   },
   actions: {
@@ -37,6 +40,9 @@ const store = createStore({
     fetchSelectedQuestion({ commit }, newScore) {
       commit("setSelectedQuestion", newScore);
     },
+    setAnswerValue({ commit }, newAnswer) {
+      commit("updateAnswer", newAnswer);
+    },
   },
   getters: {
     // Getter to access the score
@@ -48,6 +54,10 @@ const store = createStore({
     },
     getSelectedQuestion(state) {
       return state.selectedQuestion;
+    },
+    getAnswer(state) {
+      console.log("state.answer ", state.answer);
+      return state.answer;
     },
   },
   plugins: [createPersistedState()],

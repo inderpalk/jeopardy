@@ -4,29 +4,53 @@
     <div class="question">
       <h3>{{ question && question.question }}</h3>
     </div>
-    <div class="answerBox">
-      <input v-model="userAnswer" class="inputBox" type="text" placeholder="Your Answer"/>
-      <input @click="checkUserAnswer" class="submitButton" type="submit" value="Submit">
-    </div>
+    <ul class="optionList" :class="{ 'disabled': answerChecked }">
+      <li v-for="(option, index) in shuffledOptions" :key="index" @click="checkAnswer(option)">
+        {{ option }}
+      </li>
+    </ul>
     <p v-if="answerChecked" :class="{ 'correct': isCorrectAnswer, 'incorrect': !isCorrectAnswer }">
-        Your answer is {{ isCorrectAnswer ? 'correct' : 'incorrect' }}.
-      </p>
+      Your answer is {{ isCorrectAnswer ? 'correct' : 'incorrect' }}.
+    </p>
+    <button v-if="answerChecked" class="playMore" @click="redirectToHomepage">
+      Want to play more? 
+    </button>
   </div>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+
+// Define the shuffleArray function
+function shuffleArray(array) {
+  const newArray = [...array];
+  console.log(newArray)
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[randomIndex]] = [newArray[randomIndex], newArray[i]];
+  }
+  return newArray;
+}
 
 export default {
   setup() {
-    const store = useStore(); // Get access to the Vuex store
+    const store = useStore();
+    const router = useRouter();
     const questionData = ref(null);
     const jeopardyListings = ref(null);
     const question = ref(null);
     const userAnswer = ref('');
     const answerChecked = ref(false);
     const isCorrectAnswer = ref(false);
+    const fakeAnswers = ref([
+      'Febtober!',
+      "I'm Batman",
+      "I don't know where it went, I'm confused.",
+      'Threeve. A combination of 3 and 5 and you wagered Texas.'
+    ]);
+    const shuffledOptions = ref([]);
 
     onMounted(async () => {
       await store.dispatch('fetchData');
@@ -39,15 +63,23 @@ export default {
 
       if (filteredQuestion) {
         question.value = filteredQuestion;
+        shuffleOptions();
       } else {
         question.value = "Question not found";
       }
     });
 
-    // Define a function to check the user's answer
-    const checkUserAnswer = () => {
+    const shuffleOptions = () => {
+      // Combine the correct answer and fake answers
+      const allOptions = [question.value.answer, ...fakeAnswers.value];
+
+      // Shuffle the options using shuffleArray
+      shuffledOptions.value = shuffleArray(allOptions);
+    };
+
+    const checkAnswer = (option) => {
       const normalizedQuestionAnswer = question.value.answer.toLowerCase().trim();
-      const normalizedUserAnswer = userAnswer.value.toLowerCase().trim();
+      const normalizedUserAnswer = option.toLowerCase().trim();
 
       isCorrectAnswer.value = normalizedQuestionAnswer === normalizedUserAnswer;
       answerChecked.value = true;
@@ -55,7 +87,12 @@ export default {
       if (isCorrectAnswer.value){
         store.commit('updateScore', question.value.value);
       }
+      question.value.checkAnswer = isCorrectAnswer.value;
+      store.commit('updateAnswer', question.value);
+    };
 
+    const redirectToHomepage = () => {
+      router.push('/');
     };
 
     return {
@@ -65,7 +102,10 @@ export default {
       userAnswer,
       answerChecked,
       isCorrectAnswer,
-      checkUserAnswer
+      shuffledOptions,
+      shuffleOptions,
+      redirectToHomepage,
+      checkAnswer
     };
   },
 };
@@ -89,39 +129,47 @@ export default {
         width: 100%;
       }
     }
-    .answerBox{
-      width: 700px;
+    .optionList{
       display: flex;
-      margin: 0 auto;
-      .inputBox {
-        border: 2px solid $primary-color;
-        padding: 10px;
-        font-size: 16px;
-        width: 100%;
-
-        &:focus {
-          outline: none;
-          border-color: darken($primary-color, 10%);
-          // You can add additional styles for focus state
-        }
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+      &.disabled{
+          display: none;
       }
-      .submitButton {
+      li {
         @include button($background-color, $primary-color, $primary-color, $white);
         @include font-style(30px, 600, $white);
-        border-radius: 0px;
-        padding: 12px 35px;
+        padding: 10px;
+        margin: 0 10px 20px 0;
+        min-height: 80px;
+        flex: 0 0 46%; /* Adjust the width as needed */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
       }
     }
 
     .incorrect{
       @include font-style(30px, 600, $incorrect);
       margin: 20px 0;
+      width: 100%;
       display: inline-block;
     }
     
     .correct {
       @include font-style(30px, 600, $correct);
       margin: 20px 0;
+      width: 100%;
+      display: inline-block;
+    }
+    
+    .playMore{
+      @include button($background-color, $primary-color, $primary-color, $white);
+      @include font-style(33px, 600, $white);
+      margin: 20px 0;
+      padding: 10px 20px;
       display: inline-block;
     }
 }

@@ -8,6 +8,10 @@
                         <button 
                             type="button"
                             @click="fetchQuestions(categoryName, value)"
+                            :class="{
+                                'correct': isCorrectAnswer(categoryName, value),
+                                'disabled': isdisable(categoryName, value)
+                            }"
                         >
                             {{ value }}
                         </button>
@@ -32,6 +36,7 @@
             const jeopardyListings = ref(null);
             const selectedCategory = ref(null);
 
+            const answerValue = computed(() => store.getters.getAnswer);
 
             onMounted(async () => {
                 await store.dispatch('fetchData');
@@ -73,11 +78,26 @@
                 router.push({ name: 'QuestionAnswer' });            
             };
 
+            const isCorrectAnswer = (categoryName, value) => {
+                return answerValue.value.some((item) => {
+                    return item.category === categoryName && item.value === value && item.checkAnswer;
+                });
+            };
+
+            const isdisable = (categoryName, value) => {
+                return answerValue.value.some((item) => {
+                    return item.category === categoryName && item.value === value;
+                });
+            };
+
 
             return {
                 jeopardyListings,
                 groupedData,
-                fetchQuestions
+                fetchQuestions,
+                answerValue,
+                isCorrectAnswer,
+                isdisable
             };
         },
     }
@@ -108,9 +128,26 @@
                 @include font-style(30px, 600, $white);
                 margin: 5px 0;
                 width: 100%;
+                &.disabled {
+                    pointer-events: none;
+                    opacity: 0.6; 
+                    cursor: not-allowed;
+                }
+                &.correct {
+                    color: $correct;
+                }
+                &.incorrect {
+                    color: $incorrect;
+                }
             }
         }
     }
 }
 </style>
 
+<!-- :class="{
+    'correct': answerValue === value,
+    'incorrect': answerValue !== null && answerValue !== value,
+    'disabled': answerValue !== null
+}"
+:disabled="answerValue !== null" -->
